@@ -1,11 +1,20 @@
 package com.tngtech.archunit.library.metrics;
 
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaPackage;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg1.SomeTestClass1;
+import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg2.SomeTestClass2;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.library.metrics.TestElement.GET_DEPENDENCIES;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.fromNode;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.graph;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -20,7 +29,7 @@ public class LakosMetricsTest {
     public void lakos_metrics_of_a_single_component() {
         MetricsComponents<TestElement> components = MetricsComponents.of(MetricsComponent.of("component", new TestElement()));
 
-        LakosMetrics metrics = ArchitectureMetrics.lakosMetrics(components);
+        LakosMetrics metrics = ArchitectureMetrics.lakosMetrics(components, GET_DEPENDENCIES);
 
         assertThat(metrics.getCumulativeComponentDependency())
                 .as("CCD").isEqualTo(1);
@@ -134,7 +143,7 @@ public class LakosMetricsTest {
     @UseDataProvider("dependency_graphs_with_expected_metrics")
     public void lakos_metrics_are_calculated_correctly(TestMetricsComponentDependencyGraph graph, ExpectedMetrics expectedMetrics) {
 
-        LakosMetrics metrics = ArchitectureMetrics.lakosMetrics(graph.toComponents());
+        LakosMetrics metrics = ArchitectureMetrics.lakosMetrics(graph.toComponents(), GET_DEPENDENCIES);
 
         assertThat(metrics.getCumulativeComponentDependency())
                 .as("CCD of " + graph).isEqualTo(expectedMetrics.ccd);
@@ -144,6 +153,25 @@ public class LakosMetricsTest {
                 .as("RACD of " + graph).isCloseTo(expectedMetrics.racd, offset(0.01));
         assertThat(metrics.getNormalizedCumulativeComponentDependency())
                 .as("NCCD of " + graph).isCloseTo(expectedMetrics.nccd, offset(0.01));
+    }
+
+    @Test
+    public void lakos_metrics_of_packages() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SomeTestClass1.class, SomeTestClass2.class);
+        Set<JavaPackage> packages = ImmutableSet.of(
+                classes.get(SomeTestClass1.class).getPackage(),
+                classes.get(SomeTestClass2.class).getPackage());
+
+        LakosMetrics metrics = ArchitectureMetrics.lakosMetrics(MetricsComponents.fromPackages(packages));
+
+        assertThat(metrics.getCumulativeComponentDependency())
+                .as("CCD").isEqualTo(3);
+        assertThat(metrics.getAverageComponentDependency())
+                .as("ACD").isEqualTo(1.5);
+        assertThat(metrics.getRelativeAverageComponentDependency())
+                .as("RACD").isEqualTo(0.75);
+        assertThat(metrics.getNormalizedCumulativeComponentDependency())
+                .as("NCCD").isEqualTo(1.0);
     }
 
     private static class ExpectedMetrics {

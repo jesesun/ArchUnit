@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.library.metrics;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,19 +24,20 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
+import com.tngtech.archunit.base.Function;
 
-class MetricsComponentDependencyGraph<T extends HasDependencies<T>> {
+class MetricsComponentDependencyGraph<T> {
     private final SetMultimap<MetricsComponent<T>, MetricsComponent<T>> componentDependencies;
 
-    private MetricsComponentDependencyGraph(Iterable<MetricsComponent<T>> components) {
-        this.componentDependencies = createComponentDependencies(components);
+    private MetricsComponentDependencyGraph(Iterable<MetricsComponent<T>> components, Function<T, Collection<T>> getDependencies) {
+        this.componentDependencies = createComponentDependencies(components, getDependencies);
     }
 
-    private ImmutableSetMultimap<MetricsComponent<T>, MetricsComponent<T>> createComponentDependencies(Iterable<MetricsComponent<T>> components) {
+    private ImmutableSetMultimap<MetricsComponent<T>, MetricsComponent<T>> createComponentDependencies(Iterable<MetricsComponent<T>> components, Function<T, Collection<T>> getDependencies) {
         Map<T, MetricsComponent<T>> componentsByElements = indexComponentByElement(components);
         ImmutableSetMultimap.Builder<MetricsComponent<T>, MetricsComponent<T>> componentDependencies = ImmutableSetMultimap.builder();
         for (MetricsComponent<T> component : components) {
-            componentDependencies.putAll(component, createDependenciesOf(component, componentsByElements));
+            componentDependencies.putAll(component, createDependenciesOf(component, componentsByElements, getDependencies));
         }
         return componentDependencies.build();
     }
@@ -50,10 +52,10 @@ class MetricsComponentDependencyGraph<T extends HasDependencies<T>> {
         return componentsByElements;
     }
 
-    private ImmutableSet<MetricsComponent<T>> createDependenciesOf(MetricsComponent<T> component, Map<T, MetricsComponent<T>> componentsByElements) {
+    private ImmutableSet<MetricsComponent<T>> createDependenciesOf(MetricsComponent<T> component, Map<T, MetricsComponent<T>> componentsByElements, Function<T, Collection<T>> getDependencies) {
         ImmutableSet.Builder<MetricsComponent<T>> builder = ImmutableSet.builder();
         for (T element : component.getElements()) {
-            for (T dependency : element.getDependencies()) {
+            for (T dependency : getDependencies.apply(element)) {
                 MetricsComponent<T> target = componentsByElements.get(dependency);
                 if (target != null && !target.equals(component)) {
                     builder.add(target);
@@ -88,12 +90,7 @@ class MetricsComponentDependencyGraph<T extends HasDependencies<T>> {
         }
     }
 
-    @SafeVarargs
-    static <T extends HasDependencies<T>> MetricsComponentDependencyGraph<T> of(MetricsComponent<T>... components) {
-        return new MetricsComponentDependencyGraph<>(ImmutableSet.copyOf(components));
-    }
-
-    static <T extends HasDependencies<T>> MetricsComponentDependencyGraph<T> of(Iterable<MetricsComponent<T>> components) {
-        return new MetricsComponentDependencyGraph<>(components);
+    static <T> MetricsComponentDependencyGraph<T> of(Iterable<MetricsComponent<T>> components, Function<T, Collection<T>> getDependencies) {
+        return new MetricsComponentDependencyGraph<>(components, getDependencies);
     }
 }

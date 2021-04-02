@@ -20,6 +20,7 @@ import java.util.Collection;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.Function;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.singleton;
@@ -53,9 +54,9 @@ public final class LakosMetrics {
     private final double relativeAverageComponentDependency;
     private final double normalizedCumulativeComponentDependency;
 
-    <T extends HasDependencies<T>> LakosMetrics(Collection<MetricsComponent<T>> components) {
+    <T> LakosMetrics(Collection<MetricsComponent<T>> components, Function<T, Collection<T>> getDependencies) {
         int cumulativeComponentDependency = 0;
-        MetricsComponentDependencyGraph<T> graph = MetricsComponentDependencyGraph.of(components);
+        MetricsComponentDependencyGraph<T> graph = MetricsComponentDependencyGraph.of(components, getDependencies);
         for (MetricsComponent<T> component : components) {
             cumulativeComponentDependency += 1 + getNumberOfTransitiveDependencies(graph, component);
         }
@@ -66,7 +67,7 @@ public final class LakosMetrics {
                 ((double) cumulativeComponentDependency) / calculateCumulativeComponentDependencyOfBinaryTree(components.size());
     }
 
-    private <T extends HasDependencies<T>> int getNumberOfTransitiveDependencies(MetricsComponentDependencyGraph<T> graph, MetricsComponent<T> component) {
+    private <T> int getNumberOfTransitiveDependencies(MetricsComponentDependencyGraph<T> graph, MetricsComponent<T> component) {
         Sets.SetView<MetricsComponent<T>> transitiveDependenciesWithoutSelf = Sets.difference(graph.getTransitiveDependenciesOf(component), singleton(component));
         return transitiveDependenciesWithoutSelf.size();
     }

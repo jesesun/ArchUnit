@@ -2,10 +2,13 @@ package com.tngtech.archunit.library.metrics;
 
 import java.util.Map;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
+import static com.tngtech.archunit.library.metrics.TestElement.GET_DEPENDENCIES;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.fromNode;
 import static com.tngtech.archunit.library.metrics.TestMetricsComponentDependencyGraph.graph;
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetricsComponentDependencyGraphTest {
@@ -20,7 +23,7 @@ public class MetricsComponentDependencyGraphTest {
         MetricsComponent<TestElement> component1 = MetricsComponent.of("component1", elementOfComponent1);
         MetricsComponent<TestElement> component2 = MetricsComponent.of("component2", elementOfComponent2);
 
-        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(component1, component2);
+        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(ImmutableSet.of(component1, component2), GET_DEPENDENCIES);
 
         assertThat(graph.getDirectDependenciesOf(component1)).containsOnly(component2);
     }
@@ -37,7 +40,7 @@ public class MetricsComponentDependencyGraphTest {
         MetricsComponent<TestElement> component1 = MetricsComponent.of("component1", component1Element1, component1Element2);
         MetricsComponent<TestElement> component2 = MetricsComponent.of("component2", component2Element1);
 
-        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(component1, component2);
+        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(ImmutableSet.of(component1, component2), GET_DEPENDENCIES);
 
         assertThat(graph.getDirectDependenciesOf(component1)).containsOnly(component2);
     }
@@ -50,7 +53,7 @@ public class MetricsComponentDependencyGraphTest {
         elementInsideOfComponent.addDependency(elementOutsideOfComponent);
 
         MetricsComponent<TestElement> component = MetricsComponent.of("component", elementInsideOfComponent);
-        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(component);
+        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(singleton(component), GET_DEPENDENCIES);
 
         assertThat(graph.getDirectDependenciesOf(component)).as("dependencies of component").isEmpty();
     }
@@ -66,7 +69,7 @@ public class MetricsComponentDependencyGraphTest {
         MetricsComponent<TestElement> c = testComponents.get("C");
         MetricsComponent<TestElement> d = testComponents.get("D");
 
-        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(a, b, c, d);
+        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(ImmutableSet.of(a, b, c, d), GET_DEPENDENCIES);
 
         assertThat(graph.getTransitiveDependenciesOf(a)).containsOnly(b, c, d);
         assertThat(graph.getTransitiveDependenciesOf(b)).isEmpty();
@@ -88,7 +91,7 @@ public class MetricsComponentDependencyGraphTest {
         MetricsComponent<TestElement> d = testComponents.get("D");
         MetricsComponent<TestElement> e = testComponents.get("E");
 
-        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(a, b, c, d, e);
+        MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(ImmutableSet.of(a, b, c, d, e), GET_DEPENDENCIES);
 
         assertThat(graph.getTransitiveDependenciesOf(a)).containsOnly(b, c, d, e, a);
         assertThat(graph.getTransitiveDependenciesOf(b)).isEmpty();

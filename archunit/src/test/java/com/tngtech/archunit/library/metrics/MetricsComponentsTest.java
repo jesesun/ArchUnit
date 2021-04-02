@@ -8,9 +8,9 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.library.metrics.testobjects.pkg1.SomeTestClass1;
-import com.tngtech.archunit.library.metrics.testobjects.pkg1.sub.SomeSubTestClass;
-import com.tngtech.archunit.library.metrics.testobjects.pkg2.SomeTestClass2;
+import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg1.SomeTestClass1;
+import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg1.sub.SomeSubTestClass;
+import com.tngtech.archunit.library.metrics.testobjects.lakos.pkg2.SomeTestClass2;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Test;
 
@@ -35,9 +35,9 @@ public class MetricsComponentsTest {
     @Test
     public void creates_components_from_Java_packages() {
         JavaClasses classes = new ClassFileImporter().importPackagesOf(SomeTestClass1.class, SomeTestClass2.class);
-        Set<JavaPackage> packages = classes
-                .getPackage(getClass().getPackage().getName() + ".testobjects")
-                .getSubpackages();
+        Set<JavaPackage> packages = ImmutableSet.of(
+                classes.get(SomeTestClass1.class).getPackage(),
+                classes.get(SomeTestClass2.class).getPackage());
 
         MetricsComponents<JavaClass> components = MetricsComponents.fromPackages(packages);
 

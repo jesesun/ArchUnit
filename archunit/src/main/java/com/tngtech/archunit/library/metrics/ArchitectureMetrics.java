@@ -15,9 +15,16 @@
  */
 package com.tngtech.archunit.library.metrics;
 
+import java.util.Collection;
+
+import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 
 @PublicAPI(usage = ACCESS)
 public final class ArchitectureMetrics {
@@ -26,11 +33,34 @@ public final class ArchitectureMetrics {
 
     /**
      * Calculates system architecture metrics as defined by John Lakos.
+     * This method is a specific version of {@link #lakosMetrics(MetricsComponents, Function)} where the
+     * elements can only be of type {@link JavaClass}.
      *
-     * @see LakosMetrics
+     * @param components The components to calculate the metrics for
+     * @return The calculated {@link LakosMetrics}
      */
     @PublicAPI(usage = ACCESS)
-    public static <T extends HasDependencies<T>> LakosMetrics lakosMetrics(MetricsComponents<T> components) {
-        return new LakosMetrics(components);
+    public static LakosMetrics lakosMetrics(MetricsComponents<JavaClass> components) {
+        return lakosMetrics(components, GET_JAVA_CLASS_DEPENDENCIES);
     }
+
+    /**
+     * Calculates system architecture metrics as defined by John Lakos.
+     *
+     * @param components The components to calculate the metrics for
+     * @param getDependencies A function to derive for each element of a component the dependencies to all other elements
+     * @param <T> The type of the elements
+     * @return The calculated {@link LakosMetrics}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static <T> LakosMetrics lakosMetrics(MetricsComponents<T> components, Function<T, Collection<T>> getDependencies) {
+        return new LakosMetrics(components, getDependencies);
+    }
+
+    private static final Function<JavaClass, Collection<JavaClass>> GET_JAVA_CLASS_DEPENDENCIES = new Function<JavaClass, Collection<JavaClass>>() {
+        @Override
+        public Collection<JavaClass> apply(JavaClass javaClass) {
+            return FluentIterable.from(javaClass.getDirectDependenciesFromSelf()).transform(toGuava(GET_TARGET_CLASS)).toSet();
+        }
+    };
 }
