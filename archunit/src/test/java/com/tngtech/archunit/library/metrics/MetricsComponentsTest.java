@@ -26,10 +26,12 @@ public class MetricsComponentsTest {
             @Override
             public void call() {
                 MetricsComponents.of(
-                        MetricsComponent.of("same"),
-                        MetricsComponent.of("same"));
+                        MetricsComponent.of("duplicate-key"),
+                        MetricsComponent.of("duplicate-key"));
             }
-        }).isInstanceOf(IllegalArgumentException.class).hasMessage("Components contain duplicate identifier 'same'");
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Multiple entries with same key")
+                .hasMessageContaining("duplicate-key");
     }
 
     @Test

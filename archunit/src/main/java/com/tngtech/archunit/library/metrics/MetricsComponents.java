@@ -16,12 +16,11 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ForwardingCollection;
@@ -43,20 +42,15 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 @PublicAPI(usage = ACCESS)
 public final class MetricsComponents<T> extends ForwardingCollection<MetricsComponent<T>> {
-    private final Set<MetricsComponent<T>> components;
+    private final Map<String, MetricsComponent<T>> indexedComponents;
 
     private MetricsComponents(Collection<MetricsComponent<T>> components) {
-        validateUniqueIdentifiers(components);
-        this.components = ImmutableSet.copyOf(components);
-    }
-
-    private void validateUniqueIdentifiers(Iterable<MetricsComponent<T>> components) {
-        Set<String> identifiers = new HashSet<>();
-        for (MetricsComponent<T> component : components) {
-            if (!identifiers.add(component.getIdentifier())) {
-                throw new IllegalArgumentException("Components contain duplicate identifier '" + component.getIdentifier() + "'");
+        this.indexedComponents = Maps.uniqueIndex(components, new com.google.common.base.Function<MetricsComponent<T>, String>() {
+            @Override
+            public String apply(MetricsComponent<T> input) {
+                return input.getIdentifier();
             }
-        }
+        });
     }
 
     /**
@@ -65,17 +59,12 @@ public final class MetricsComponents<T> extends ForwardingCollection<MetricsComp
      */
     @PublicAPI(usage = ACCESS)
     public Optional<MetricsComponent<T>> tryGetComponent(String identifier) {
-        for (MetricsComponent<T> component : components) {
-            if (component.getIdentifier().equals(identifier)) {
-                return Optional.of(component);
-            }
-        }
-        return Optional.absent();
+        return Optional.fromNullable(indexedComponents.get(identifier));
     }
 
     @Override
     protected Collection<MetricsComponent<T>> delegate() {
-        return components;
+        return indexedComponents.values();
     }
 
     /**
