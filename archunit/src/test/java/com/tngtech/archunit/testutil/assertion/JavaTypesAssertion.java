@@ -25,13 +25,13 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
     @SuppressWarnings("ResultOfMethodCallIgnored") // the call modifies the object, even without using the result
     public JavaTypesAssertion(JavaType[] actual) {
         super(actual, JavaTypesAssertion.class);
-        as("classes");
+        as("types");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored") // the call modifies the object, even without using the result
     public JavaTypesAssertion(Iterable<? extends JavaType> actual) {
         super(toArray(actual, JavaType.class), JavaTypesAssertion.class);
-        as("classes");
+        as("types");
     }
 
     public void matchInAnyOrder(Iterable<Class<?>> classes) {
