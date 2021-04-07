@@ -37,9 +37,12 @@ import static java.util.Collections.singleton;
  * The Lakos metrics are then calculated as:
  * <p>
  *     <ul>
- *         <li> Cumulative Component Dependency (<b>CCD</b>): The sum of all dependsOn values of all components </li>
- *         <li> Average Component Dependency (<b>ACD</b>): The CCD divided by the number of of all components </li>
- *         <li> Relative Average Component Dependency (<b>RACD</b>): The ACD divided by the number of of all components </li>
+ *         <li> Cumulative Component Dependency (<b>CCD</b>):
+ *              The sum of all dependsOn values of all components </li>
+ *         <li> Average Component Dependency (<b>ACD</b>):
+ *              The CCD divided by the number of all components </li>
+ *         <li> Relative Average Component Dependency (<b>RACD</b>):
+ *              The ACD divided by the number of all components </li>
  *         <li> Normalized Cumulative Component Dependency (<b>NCCD</b>):
  *              The CCD of the system divided by the CCD of a balanced binary tree with the same number of components </li>
  *     </ul>
