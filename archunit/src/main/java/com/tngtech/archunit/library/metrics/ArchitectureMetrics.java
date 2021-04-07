@@ -36,8 +36,7 @@ public final class ArchitectureMetrics {
 
     /**
      * Calculates system architecture metrics as defined by John Lakos.
-     * This method is a specific version of {@link #lakosMetrics(MetricsComponents, Function)} where the
-     * elements can only be of type {@link JavaClass}.
+     * This method is a specific version of {@link #lakosMetrics(MetricsComponents, Function)} for {@link JavaClass JavaClasses}.
      *
      * @param components The components to calculate the metrics for
      * @return The calculated {@link LakosMetrics}
